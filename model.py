@@ -114,16 +114,13 @@ def _preprocess_data(data):
         p_val = round(pearsonr(df_dummies[col], df_dummies['load_shortfall_3h'])[1],6)
         dict_cp[col] = {'Correlation_Coefficient':corrs[col],
                         'P_Value':p_val}
-
-    df_cp = pd.DataFrame(dict_cp).T
-    df_cp_sorted = df_cp.sort_values('P_Value')
-    df_cp_sorted[df_cp_sorted['P_Value']<0.1]
     
     #Building model with feature having p valve < 0.05
     # The dependent variable remains the same:
     y_data = df_dummies['load_shortfall_3h']  # y_name = 'load_shortfall_3h'
 
     # Model building - Independent Variable (IV) DataFrame
+    df_cp = pd.DataFrame(dict_cp).T
     X_names = list(df_cp[df_cp['P_Value'] < 0.05].index)
     X_data = df_dummies[X_names]
     
