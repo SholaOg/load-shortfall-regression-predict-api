@@ -94,17 +94,20 @@ def _preprocess_data(data):
             h = row['hour']
 
             df.loc[label, 'Valencia_pressure'] = round((df[(df['year'] == y) & (df['month'] == m)]['Valencia_pressure']).mean(),1) 
-    
+
     #df_dummy =df_dummy.reindex(columns=column_titles)
     df_dummies = pd.get_dummies(df)
 
     # Again we make sure that all the column names have underscores instead of whitespaces
     df_dummies.columns = [col.replace(" ","_") for col in df_dummies.columns] 
-    
+
+    # Calculate correlations between predictor variables and the response variable
+    corrs = df_dummies.corr()['load_shortfall_3h'].sort_values(ascending=False)
+
     #Reindexing the new DF such the load_shortfall_3h becomes the last column.
     column_titles = [col for col in df_dummies.columns if col!= 'load_shortfall_3h'] + ['load_shortfall_3h']
     df_dummies=df_dummies.reindex(columns=column_titles)
-    
+
     from scipy.stats import pearsonr
     # Build a dictionary of correlation coefficients and p-values
     dict_cp = {}
@@ -114,7 +117,7 @@ def _preprocess_data(data):
         p_val = round(pearsonr(df_dummies[col], df_dummies['load_shortfall_3h'])[1],6)
         dict_cp[col] = {'Correlation_Coefficient':corrs[col],
                         'P_Value':p_val}
-    
+
     #Building model with feature having p valve < 0.05
     # The dependent variable remains the same:
     y_data = df_dummies['load_shortfall_3h']  # y_name = 'load_shortfall_3h'
@@ -123,7 +126,7 @@ def _preprocess_data(data):
     df_cp = pd.DataFrame(dict_cp).T
     X_names = list(df_cp[df_cp['P_Value'] < 0.05].index)
     X_data = df_dummies[X_names]
-    
+
     X_remove = ['Valencia_temp_min', 'Valencia_temp_max',
             'Seville_temp_min', 'Seville_temp_max',
             'Bilbao_temp_min', 'Bilbao_temp_max',
@@ -131,9 +134,10 @@ def _preprocess_data(data):
             'Madrid_temp_min', 'Madrid_temp_max', 
             'Seville_humidity', 'Madrid_humidity',
             'Valencia_snow_3h', 'Sevill_rain_3h']
-             
+
     X_corr_names = [col for col in X_names if col not in X_remove]
     predict_vector = X_data[X_corr_names]
+
     # ------------------------------------------------------------------------
 
     return predict_vector
