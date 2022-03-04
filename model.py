@@ -97,11 +97,9 @@ def _preprocess_data(data):
     
     #df_dummy =df_dummy.reindex(columns=column_titles)
     df_dummies = pd.get_dummies(df)
-    df_test_dummies = pd.get_dummies(df_test)
 
     # Again we make sure that all the column names have underscores instead of whitespaces
     df_dummies.columns = [col.replace(" ","_") for col in df_dummies.columns] 
-    df_test_dummies.columns = [col.replace(" ","_") for col in df_test_dummies.columns]
     
     #Reindexing the new DF such the load_shortfall_3h becomes the last column.
     column_titles = [col for col in df_dummies.columns if col!= 'load_shortfall_3h'] + ['load_shortfall_3h']
@@ -137,7 +135,8 @@ def _preprocess_data(data):
             'Seville_humidity', 'Madrid_humidity',
             'Valencia_snow_3h', 'Sevill_rain_3h']
              
-    predict_vector = [col for col in X_names if col not in X_remove]
+    X_corr_names = [col for col in X_names if col not in X_remove]
+    predict_vector = X_data[X_corr_names]
     # ------------------------------------------------------------------------
 
     return predict_vector
